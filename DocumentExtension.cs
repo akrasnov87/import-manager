@@ -13,63 +13,75 @@ namespace import_manager
         /// </summary>
         /// <param name="doc"></param>
         /// <param name="line"></param>
-        public static void Convert(this Document doc, string line)
+        public static void ConvertWord(this Document doc, string line)
         {
             doc.id = Guid.NewGuid();
             string[] param = line.Split(";");
-            if(!string.IsNullOrEmpty(param[0]))
-            {
-                doc.n_number = int.Parse(NormalString(param[0].Replace(".", "")));
-            } else
-            {
-                doc.n_number = null;
-            }
+            doc.setNumber(param[0]);
+
             if(string.IsNullOrEmpty(NormalString(param[1])) 
                 || NormalString(param[1]).StartsWith("(")
                 || char.IsDigit(NormalString(param[1])[0]))
             {
                 // значит это лишняя строка
                 doc.n_number = null;
-                //return;
             }
-            string fioNormal = NormalString(param[1]);
-            doc.c_fio = GetFioString(fioNormal);
-            if (!string.IsNullOrEmpty(GetBirthDayString(fioNormal)) 
-                && GetDateString(GetBirthDayString(fioNormal)) != null)
-            {
-                try
-                {
-                    doc.d_birthday = DateTime.Parse(GetDateString(GetBirthDayString(fioNormal)));
-                } catch(Exception e)
-                {
-                    doc.c_import_warning = e.Message;
-                }
-            }
+            doc.setFio(param[1]);
+            doc.setBirthDay(param[1]);
 
             doc.c_address = NormalString(param[2]);
-            if (!string.IsNullOrEmpty(NormalString(param[3])))
-            {
-                doc.d_date = DateTime.Parse(NormalString(param[3]));
-            }
+            doc.setDate(param[3]);
+
             doc.c_intent = NormalString(param[4]);
             doc.c_account = NormalString(param[5]);
             doc.c_accept = NormalString(param[6]);
             doc.c_earth = NormalString(param[7]);
 
-            if(!string.IsNullOrEmpty(NormalString(param[8])) && GetDateString(param[8]) != null)
-            {
-                doc.d_take_off_solution = DateTime.Parse(GetDateString(param[8]));
-            }
-
-            if (!string.IsNullOrEmpty(NormalString(param[9])) && GetDateString(param[9]) != null)
-            {
-                doc.d_take_off_message = DateTime.Parse(GetDateString(param[9]));
-            }
+            doc.setTakeOffSolution(param[8]);
+            doc.setTakeOffMessage(param[9]);
 
             doc.c_notice = NormalString(param[10]);
         }
 
-        static string NormalString(string str)
+        /// <summary>
+        /// Реестр учета многодетных семей .xlsx
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="line"></param>
+        public static void ConvertExcel(this Document doc, string line)
+        {
+            doc.id = Guid.NewGuid();
+            string[] param = line.Split(";");
+            doc.setNumber(param[0]);
+
+            if (string.IsNullOrEmpty(NormalString(param[1]))
+                || NormalString(param[1]).StartsWith("(")
+                || char.IsDigit(NormalString(param[1])[0]))
+            {
+                // значит это лишняя строка
+                doc.n_number = null;
+            }
+            doc.setFio(param[1]);
+            doc.setBirthDay(param[2]);
+
+            doc.setYear(param[3]);
+            doc.c_document = NormalString(param[4]);
+            doc.c_address = NormalString(param[5]);
+            doc.setDate(param[6]);
+            doc.c_time = NormalString(param[7]);
+
+            doc.c_intent = NormalString(param[8]);
+            doc.c_account = NormalString(param[9]);
+            doc.c_accept = NormalString(param[10]);
+            doc.c_earth = NormalString(param[11]);
+
+            doc.setTakeOffSolution(param[12]);
+            doc.setTakeOffMessage(param[13]);
+
+            doc.c_notice = NormalString(param[14]);
+        }
+
+        public static string NormalString(string str)
         {
             return str.Trim();
         }
@@ -79,7 +91,7 @@ namespace import_manager
         /// </summary>
         /// <param name="str">строка для поиска</param>
         /// <returns></returns>
-        static string GetDateString(string str)
+        public static string GetDateString(string str)
         {
             str = NormalString(str);
             Regex regex = new Regex(@"\d{2}\.\d{2}\.\d{2,4}", RegexOptions.IgnoreCase);
@@ -95,7 +107,7 @@ namespace import_manager
         /// </summary>
         /// <param name="fio"></param>
         /// <returns></returns>
-        static string GetFioString(string fio)
+        public static string GetFioString(string fio)
         {
             char[] delimiterChars = { ',' };
             return fio.Split(delimiterChars)[0];
@@ -106,7 +118,7 @@ namespace import_manager
         /// </summary>
         /// <param name="fio"></param>
         /// <returns></returns>
-        static string GetBirthDayString(string fio)
+        public static string GetBirthDayString(string fio)
         {
             char[] delimiterChars = { ',' };
             string[] items = fio.Split(delimiterChars);
@@ -132,10 +144,11 @@ namespace import_manager
 
         public static void ToImport(this Document doc)
         {
-            if (doc.d_date.HasValue && doc.d_date.Value != DateTime.MinValue && doc.d_birthday != DateTime.MinValue)
+            if (doc.n_year == 0 && doc.d_date.HasValue && doc.d_date.Value != DateTime.MinValue && doc.d_birthday != DateTime.MinValue)
             {
                 doc.n_year = doc.d_date.Value.Year - doc.d_birthday.Year;
             }
+
             foreach (Document document in doc.documents)
             {
                 doc.c_accept += "\n" + document.c_accept;

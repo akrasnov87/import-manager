@@ -105,10 +105,84 @@ namespace import_manager.Model
         /// </summary>
         public string c_import_warning { get; set; }
 
+        /// <summary>
+        /// Для колонки jb_child
+        /// </summary>
         [NotMapped]
         public List<People> childrens { get; set; }
 
+        /// <summary>
+        /// Используется для импорта из Word
+        /// </summary>
         [NotMapped]
         public List<Document> documents { get; set; }
+
+        public void setNumber(string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                n_number = int.Parse(DocumentExtension.NormalString(value.Replace(".", "")));
+            }
+            else
+            {
+                n_number = null;
+            }
+        }
+
+        public void setFio(string value)
+        {
+            string fioNormal = DocumentExtension.NormalString(value);
+            c_fio = DocumentExtension.GetFioString(fioNormal);
+        }
+
+        public void setBirthDay(string value)
+        {
+            string fioNormal = DocumentExtension.NormalString(value);
+            
+            if (!string.IsNullOrEmpty(DocumentExtension.GetBirthDayString(fioNormal))
+                && DocumentExtension.GetDateString(DocumentExtension.GetBirthDayString(fioNormal)) != null)
+            {
+                try
+                {
+                    d_birthday = DateTime.Parse(DocumentExtension.GetDateString(DocumentExtension.GetBirthDayString(fioNormal)));
+                }
+                catch (Exception e)
+                {
+                    c_import_warning = e.Message;
+                }
+            }
+        }
+
+        public void setDate(string value)
+        {
+            if (!string.IsNullOrEmpty(DocumentExtension.NormalString(value)))
+            {
+                d_date = DateTime.Parse(DocumentExtension.NormalString(value));
+            }
+        }
+
+        public void setTakeOffSolution(string value)
+        {
+            if (!string.IsNullOrEmpty(DocumentExtension.NormalString(value)) && DocumentExtension.GetDateString(value) != null)
+            {
+                d_take_off_solution = DateTime.Parse(DocumentExtension.GetDateString(value));
+            }
+        }
+
+        public void setTakeOffMessage(string value)
+        {
+            if (!string.IsNullOrEmpty(DocumentExtension.NormalString(value)) && DocumentExtension.GetDateString(value) != null)
+            {
+                d_take_off_message = DateTime.Parse(DocumentExtension.GetDateString(value));
+            }
+        }
+
+        public void setYear(string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                n_year = int.Parse(DocumentExtension.NormalString(value));
+            }
+        }
     }
 }
