@@ -8,16 +8,28 @@ namespace import_manager
     class Program
     {
         static string docName;
+
         static void Main(string[] args)
         {
+            docName = args[0];
             string txt = File.ReadAllText(args[0]);
             var list = CsvReader(txt);
-            Console.WriteLine("Hello World!");
+            using (ApplicationContext db = new ApplicationContext())
+            {
+                foreach (Document document in list)
+                {
+                    document.ToImport();
+                    db.Documents.Add(document);
+                }
+
+                db.SaveChanges();
+            }
+            Console.WriteLine("Обработано: " + list.Count);
         }
 
         static List<Document> CsvReader(string txt)
         {
-            int? parent = -1;
+            Document parent = null;
             List<Document> items = new List<Document>();
             string[] lines = txt.Split("\r\n");
             for (int i = 0; i < lines.Length; i++)
@@ -32,13 +44,21 @@ namespace import_manager
                     item.Convert(line);
                     if (item.n_number == null)
                     {
-                        item.f_parent = parent;
+                        if (string.IsNullOrEmpty(item.c_fio) || item.d_birthday == DateTime.MinValue)
+                        {
+                            parent.documents.Add(item);
+                        }
+                        else
+                        {
+                            parent.childrens.Add(item.Convert());
+                        }
                     }
                     else
                     {
-                        parent = item.id;
+                        parent = item;
+                        item.c_import_doc = docName;
+                        items.Add(item);
                     }
-                    items.Add(item);
                 }
             }
             return items;

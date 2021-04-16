@@ -15,7 +15,7 @@ namespace import_manager
         /// <param name="line"></param>
         public static void Convert(this Document doc, string line)
         {
-            doc.id = (int)(DateTime.Now.Ticks - DateTime.Parse("2021-04-15").Ticks);
+            doc.id = Guid.NewGuid();
             string[] param = line.Split(";");
             if(!string.IsNullOrEmpty(param[0]))
             {
@@ -29,15 +29,21 @@ namespace import_manager
                 || char.IsDigit(NormalString(param[1])[0]))
             {
                 // значит это лишняя строка
-                doc.n_number = -1;
-                return;
+                doc.n_number = null;
+                //return;
             }
             string fioNormal = NormalString(param[1]);
             doc.c_fio = GetFioString(fioNormal);
             if (!string.IsNullOrEmpty(GetBirthDayString(fioNormal)) 
                 && GetDateString(GetBirthDayString(fioNormal)) != null)
             {
-                doc.d_birthday = DateTime.Parse(GetDateString(GetBirthDayString(fioNormal)));
+                try
+                {
+                    doc.d_birthday = DateTime.Parse(GetDateString(GetBirthDayString(fioNormal)));
+                } catch(Exception e)
+                {
+                    doc.c_import_warning = e.Message;
+                }
             }
 
             doc.c_address = NormalString(param[2]);
@@ -105,6 +111,52 @@ namespace import_manager
             char[] delimiterChars = { ',' };
             string[] items = fio.Split(delimiterChars);
             return NormalString(items[items.Length - 1]);
+        }
+
+        /// <summary>
+        /// Преобразование документа в человека
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <returns></returns>
+        public static People Convert(this Document doc)
+        {
+            People people = new People();
+            people.c_address = doc.c_address;
+            people.c_document = doc.c_document;
+            people.c_fio = doc.c_fio;
+            people.d_birthday = doc.d_birthday;
+            people.n_year = doc.n_year;
+
+            return people;
+        }
+
+        public static void ToImport(this Document doc)
+        {
+            if (doc.d_date.HasValue && doc.d_date.Value != DateTime.MinValue && doc.d_birthday != DateTime.MinValue)
+            {
+                doc.n_year = doc.d_date.Value.Year - doc.d_birthday.Year;
+            }
+            foreach (Document document in doc.documents)
+            {
+                doc.c_accept += "\n" + document.c_accept;
+                doc.c_account += "\n" + document.c_account;
+            }
+
+            foreach(People people in doc.childrens)
+            {
+                if (doc.d_date.HasValue && doc.d_date.Value != DateTime.MinValue && people.d_birthday != DateTime.MinValue)
+                {
+                    people.n_year = doc.d_date.Value.Year - people.d_birthday.Year;
+                }
+            }
+
+            if (doc.childrens.Count > 0)
+            {
+                doc.jb_child = Newtonsoft.Json.JsonConvert.SerializeObject(doc.childrens);
+            } else
+            {
+                doc.jb_child = null;
+            }
         }
     }
 }

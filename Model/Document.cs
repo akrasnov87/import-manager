@@ -9,11 +9,20 @@ namespace import_manager.Model
     [Table("dd_documents", Schema = "core")]
     public class Document
     {
+        public Document()
+        {
+            childrens = new List<People>();
+            documents = new List<Document>();
+            c_document = "";
+            c_time = "";
+            f_user = 1;
+        }
+
         /// <summary>
         /// Идентификатор
         /// </summary>
         [Key]
-        public int id { get; set; }
+        public Guid id { get; set; }
         /// <summary>
         /// Номер
         /// </summary>
@@ -65,11 +74,11 @@ namespace import_manager.Model
         /// <summary>
         /// Решение о снятии с учета
         /// </summary>
-        public DateTime d_take_off_solution { get; set; }
+        public DateTime? d_take_off_solution { get; set; }
         /// <summary>
         /// Сообщение заявителю о снятии с учета
         /// </summary>
-        public DateTime d_take_off_message { get; set; }
+        public DateTime? d_take_off_message { get; set; }
         /// <summary>
         /// Примечание
         /// </summary>
@@ -79,9 +88,13 @@ namespace import_manager.Model
         /// </summary>
         public int f_user { get; set; }
         /// <summary>
-        /// Родитель
+        /// Вложения
         /// </summary>
-        public int? f_parent { get; set; }
+        [Column(TypeName = "jsonb")]
+        public string jb_child { get; set; }
+        /// <summary>
+        /// признак удаления
+        /// </summary>
         public bool sn_delete { get; set; }
         /// <summary>
         /// Документ из которого импортировались данные
@@ -91,5 +104,11 @@ namespace import_manager.Model
         /// Замечания после импорта
         /// </summary>
         public string c_import_warning { get; set; }
+
+        [NotMapped]
+        public List<People> childrens { get; set; }
+
+        [NotMapped]
+        public List<Document> documents { get; set; }
     }
 }
