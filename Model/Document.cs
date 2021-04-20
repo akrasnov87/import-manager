@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace import_manager.Model
 {
-    [Table("dd_documents", Schema = "core")]
+    [Table("dd_tmp_documents", Schema = "core")]
     public class Document
     {
         public Document()
@@ -121,7 +122,23 @@ namespace import_manager.Model
         {
             if (!string.IsNullOrEmpty(value))
             {
-                n_number = int.Parse(DocumentExtension.NormalString(value.Replace(".", "")));
+                try
+                {
+                    n_number = int.Parse(DocumentExtension.NormalString(value.Replace(".", "")));
+                }
+                catch (Exception)
+                {
+                    c_import_warning = "n_number=" + value;
+                    Regex r = new Regex(@"\d+", RegexOptions.IgnoreCase);
+                    if (r.IsMatch(value))
+                    {
+                        n_number = int.Parse(DocumentExtension.NormalString(r.Match(value).Value.Replace(".", "")));
+                    }
+                    else
+                    {
+                        n_number = int.Parse(DocumentExtension.NormalString(value.Replace(".", "")));
+                    }
+                }
             }
             else
             {
@@ -157,7 +174,16 @@ namespace import_manager.Model
         {
             if (!string.IsNullOrEmpty(DocumentExtension.NormalString(value)))
             {
-                d_date = DateTime.Parse(DocumentExtension.NormalString(value));
+                Regex r = new Regex(@"\d{2}\.\d{2}\.\d{2,4}", RegexOptions.IgnoreCase);
+                if (r.IsMatch(value))
+                {
+                    d_date = DateTime.Parse(DocumentExtension.NormalString(r.Match(value).Value));
+                } else
+                {
+                    d_date = DateTime.MinValue;
+                    c_import_warning = "d_date=" + value;
+                    //throw new Exception(value);
+                }
             }
         }
 

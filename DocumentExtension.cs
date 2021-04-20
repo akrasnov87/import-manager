@@ -151,6 +151,7 @@ namespace import_manager
 
             foreach (Document document in doc.documents)
             {
+                
                 doc.c_accept += "\n" + document.c_accept;
                 doc.c_account += "\n" + document.c_account;
             }
