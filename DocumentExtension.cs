@@ -18,8 +18,9 @@ namespace import_manager
             doc.id = Guid.NewGuid();
             string[] param = line.Split(";");
             doc.setNumber(param[0]);
+            bool isNewFormat = param.Length == 12;
 
-            if(string.IsNullOrEmpty(NormalString(param[1])) 
+            if (string.IsNullOrEmpty(NormalString(param[1])) 
                 || NormalString(param[1]).StartsWith("(")
                 || char.IsDigit(NormalString(param[1])[0]))
             {
@@ -28,19 +29,21 @@ namespace import_manager
             }
             doc.setFio(param[1]);
             doc.setBirthDay(param[1]);
+            if (isNewFormat == true) {
+                doc.c_document = NormalString(param[2]);
+            }
+            doc.c_address = NormalString(param[isNewFormat ? 3 : 2]);
+            doc.setDate(param[isNewFormat ? 4 : 3]);
 
-            doc.c_address = NormalString(param[2]);
-            doc.setDate(param[3]);
+            doc.c_intent = NormalString(param[isNewFormat ? 5 : 4]);
+            doc.c_account = NormalString(param[isNewFormat ? 6 : 5]);
+            doc.c_accept = NormalString(param[isNewFormat ? 7 : 6]);
+            doc.c_earth = NormalString(param[isNewFormat ? 8 : 7]);
 
-            doc.c_intent = NormalString(param[4]);
-            doc.c_account = NormalString(param[5]);
-            doc.c_accept = NormalString(param[6]);
-            doc.c_earth = NormalString(param[7]);
+            doc.setTakeOffSolution(param[isNewFormat ? 9 : 8]);
+            doc.setTakeOffMessage(param[isNewFormat ? 10 : 9]);
 
-            doc.setTakeOffSolution(param[8]);
-            doc.setTakeOffMessage(param[9]);
-
-            doc.c_notice = NormalString(param[10]);
+            doc.c_notice = NormalString(param[isNewFormat ? 11 : 10]);
         }
 
         /// <summary>
@@ -52,6 +55,7 @@ namespace import_manager
         {
             doc.id = Guid.NewGuid();
             string[] param = line.Split(";");
+            
             doc.setNumber(param[0]);
 
             if (string.IsNullOrEmpty(NormalString(param[1]))
@@ -62,6 +66,7 @@ namespace import_manager
                 doc.n_number = null;
             }
             doc.setFio(param[1]);
+
             doc.setBirthDay(param[2]);
 
             doc.setYear(param[3]);
